@@ -1,10 +1,10 @@
-# Cassandra Pool Metrics Parser
+# DSE Pool Metrics Parser
 
-This Python script parses pool metrics from Cassandra system logs and outputs them to CSV format.
+This Python script parses pool metrics from DSE system logs and outputs them to CSV format.
 
 ## Features
 
-- Parses the Cassandra pool statistics pattern from system logs
+- Parses the DSE pool statistics pattern from system logs
 - Extracts timestamps from log entries
 - Filters pools by name (case-insensitive)
 - Outputs to CSV with specified columns: timestamp, pool_name, shared, stolen, completed, blocked, all_time_blocked
