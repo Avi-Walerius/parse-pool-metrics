@@ -13,12 +13,6 @@ This Python script parses pool metrics from DSE system logs and outputs them to 
 
 ## Usage
 
-### Basic Usage
-
-```bash
-python3 parse_pool_metrics.py system.log
-```
-
 ### Filter Specific Pools (Column-based Output)
 
 ```bash
@@ -62,6 +56,11 @@ By default, the script creates a CSV file with a timestamp in the filename:
 ```bash
 python3 parse_pool_metrics.py system.log
 # Creates: pool_metrics_20251007_134328.csv
+```
+### Basic Usage (Row based output)
+
+```bash
+python3 parse_pool_metrics.py system.log
 ```
 
 ### Command Line Options
