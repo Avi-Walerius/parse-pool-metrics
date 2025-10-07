@@ -29,10 +29,12 @@ def extract_timestamp(line: str) -> Optional[str]:
 def parse_pool_line(line: str) -> Optional[Dict[str, str]]:
     """Parse a single pool statistics line."""
     # Split the line into columns, handling variable spacing
-    # The columns are: Pool Name, Active, Pending, Backpressure, Delayed, Shared, Stolen, Completed, Blocked, All Time Blocked
+    # The columns can be either:
+    # Format 1: Pool Name, Active, Pending, Completed, Blocked, All Time Blocked (6 columns)
+    # Format 2: Pool Name, Active, Pending, Backpressure, Delayed, Shared, Stolen, Completed, Blocked, All Time Blocked (10 columns)
     parts = line.strip().split()
     
-    if len(parts) < 10:
+    if len(parts) < 6:
         return None
     
     # Pool name might contain spaces, so we need to be careful
@@ -40,21 +42,38 @@ def parse_pool_line(line: str) -> Optional[Dict[str, str]]:
     # We'll split on multiple spaces to separate columns properly
     columns = re.split(r'\s{2,}', line.strip())
     
-    if len(columns) < 10:
+    if len(columns) < 6:
         return None
     
-    return {
-        'pool_name': columns[0].strip(),
-        'active': columns[1].strip(),
-        'pending': columns[2].strip(),
-        'backpressure': columns[3].strip(),
-        'delayed': columns[4].strip(),
-        'shared': columns[5].strip(),
-        'stolen': columns[6].strip(),
-        'completed': columns[7].strip(),
-        'blocked': columns[8].strip(),
-        'all_time_blocked': columns[9].strip()
-    }
+    # Determine format based on number of columns
+    if len(columns) >= 10:
+        # Full format with all columns
+        return {
+            'pool_name': columns[0].strip(),
+            'active': columns[1].strip(),
+            'pending': columns[2].strip(),
+            'backpressure': columns[3].strip(),
+            'delayed': columns[4].strip(),
+            'shared': columns[5].strip(),
+            'stolen': columns[6].strip(),
+            'completed': columns[7].strip(),
+            'blocked': columns[8].strip(),
+            'all_time_blocked': columns[9].strip()
+        }
+    else:
+        # Short format (6 columns): Pool Name, Active, Pending, Completed, Blocked, All Time Blocked
+        return {
+            'pool_name': columns[0].strip(),
+            'active': columns[1].strip(),
+            'pending': columns[2].strip(),
+            'backpressure': '0',  # Not present in this log format
+            'delayed': '0',        # Not present in this log format
+            'shared': '0',         # Not present in this log format
+            'stolen': '0',         # Not present in this log format
+            'completed': columns[3].strip(),
+            'blocked': columns[4].strip(),
+            'all_time_blocked': columns[5].strip()
+        }
 
 
 def find_pool_statistics_sections(file_path: str) -> List[Tuple[str, List[Dict[str, str]]]]:
@@ -72,8 +91,8 @@ def find_pool_statistics_sections(file_path: str) -> List[Tuple[str, List[Dict[s
     while i < len(lines):
         line = lines[i].strip()
         
-        # Look for the header line
-        if "Pool Name" in line and "Active" in line and "Pending" in line and "Backpressure" in line:
+        # Look for the header line - check for Pool Name, Active, and Pending
+        if "Pool Name" in line and "Active" in line and "Pending" in line:
             # Try to find timestamp - first check the line before the header
             timestamp = None
             
