@@ -10,6 +10,8 @@ This Python script parses pool metrics from DSE system logs and outputs them to 
 - Outputs to CSV with specified columns: timestamp, pool_name, shared, stolen, completed, blocked, all_time_blocked
 - Supports multiple input files
 - Handles both stdout and file output
+- Generates interactive HTML visualizations of completed metrics over time
+- Compares pool metrics across multiple nodes on the same graph
 
 ## Usage
 
@@ -69,6 +71,9 @@ python3 parse_pool_metrics.py system.log
 - `--pools`: Comma-separated list of pool names to filter (optional)
 - `--metrics`: Comma-separated list of metrics to include (optional)
 - `--output`, `-o`: Output CSV file (optional, defaults to pool_metrics_<timestamp>.csv)
+- `--visualize`, `--graph`: Generate interactive HTML visualization of completed metrics over time
+- `--html-output`: Output HTML file for visualization (optional, defaults to pool_metrics_<timestamp>.html)
+- `--nodes`: Comma-separated list of node names/labels matching file order (optional, will infer from filenames if not provided)
 
 ## Output Format
 
@@ -126,6 +131,66 @@ python3 parse_pool_metrics.py --metrics "Active,Completed" system.log
 
 # Include all metrics (default behavior)
 python3 parse_pool_metrics.py system.log
+```
+
+## Visualization
+
+The script can generate interactive HTML visualizations that track the "completed" metric over time. This is particularly useful for comparing pool metrics across multiple nodes.
+
+### Basic Visualization
+
+```bash
+python3 parse_pool_metrics.py --visualize system.log
+```
+
+This creates an HTML file (e.g., `pool_metrics_20251007_134328.html`) that you can open in any web browser.
+
+### Multi-Node Visualization
+
+When analyzing logs from multiple nodes, you can compare pool metrics across nodes:
+
+```bash
+# With explicit node labels
+python3 parse_pool_metrics.py --visualize --nodes "node1,node2,node3" node1.log node2.log node3.log
+
+# Node names inferred from filenames
+python3 parse_pool_metrics.py --visualize node1-system.log node2-system.log node3-system.log
+```
+
+### Filtering Pools in Visualization
+
+You can combine pool filtering with visualization:
+
+```bash
+python3 parse_pool_metrics.py --visualize --pools "CompactionExecutor" node1.log node2.log
+```
+
+### Visualization Features
+
+The interactive HTML dashboard includes:
+
+- **Pool Selector**: A dropdown menu to select which pool to view
+- **Node Checkboxes**: When a pool is selected, checkboxes appear for each node that has data for that pool
+- **Default Behavior**: All nodes are selected by default when a pool is chosen
+- **Interactive Chart**: Plotly.js-powered chart with zoom, pan, and hover tooltips
+- **Time Series Display**: Shows completed metrics over time with timestamps on the x-axis
+
+### How It Works
+
+1. Select a pool from the dropdown menu
+2. Node checkboxes appear for all nodes that have data for the selected pool
+3. All nodes are checked by default, showing all node traces on the graph
+4. Uncheck nodes to hide their traces and focus on specific nodes
+5. The graph updates in real-time as you toggle nodes
+
+### CSV Output with Multiple Nodes
+
+When processing multiple log files, the CSV output includes a `node_name` column (when multiple nodes are detected):
+
+```csv
+timestamp,node_name,pool_name,active,pending,completed,blocked,all_time_blocked
+"2025-10-03 10:08:32,368",node1,CompactionExecutor,0,0,311,0,0
+"2025-10-03 10:08:32,368",node2,CompactionExecutor,0,0,298,0,0
 ```
 
 ## Pattern Recognition
